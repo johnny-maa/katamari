@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3 uid="uid://cqu8rip4n4jjn"]
+
+[ext_resource type="Script" path="res://Katamari.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dlcd2b0vn2a2y" path="res://icon.svg" id="2_icon"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_katamari"]
+radius = 32.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_absorb"]
+radius = 37.0
+
+[node name="Katamari" type="CharacterBody2D" groups=["player"]]
+script = ExtResource("1_script")
+
+[node name="KatamariSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_icon")
+
+[node name="PusherSprite" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_icon")
+
+[node name="PusherHitbox" type="Area2D" parent="PusherSprite"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PusherSprite/PusherHitbox"]
+shape = SubResource("CircleShape2D_katamari")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_katamari")
+
+[node name="AbsorbArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AbsorbArea"]
+shape = SubResource("CircleShape2D_absorb")
+
+[node name="Camera2D" type="Camera2D" parent="."]

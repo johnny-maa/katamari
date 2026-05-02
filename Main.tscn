@@ -1,0 +1,34 @@
+[gd_scene load_steps=5 format=3 uid="uid://b5s04nxbxqxg5"]
+
+[ext_resource type="Script" path="res://Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://Grid.gd" id="2_grid"]
+[ext_resource type="PackedScene" uid="uid://cqu8rip4n4jjn" path="res://Katamari.tscn" id="3_katamari"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="GridBackground" type="Node2D" parent="."]
+script = ExtResource("2_grid")
+
+[node name="Katamari" parent="." instance=ExtResource("3_katamari")]
+position = Vector2(576, 324)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="TimeLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+text = "Time: 60"
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+
+[node name="ScoreLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 70.0
+text = "Size: 32 cm"
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
