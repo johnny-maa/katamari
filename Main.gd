@@ -4,6 +4,50 @@ var enemy_scene: PackedScene = preload("res://Enemy.tscn")
 var item_scene: PackedScene = preload("res://Item.tscn")
 
 @onready var katamari = $Katamari
+@onready var hp_label = $HUD/HPLabel
+
+# 背景生成用の設定
+var bg_sprite: Sprite2D
+
+func _ready():
+    _generate_background()
+    if katamari:
+            katamari.hp_changed.connect(_on_player_hp_changed)
+            _on_player_hp_changed(katamari.current_hp) # 初期HPを強制表示
+func _generate_background():
+    # 巨大すぎる領域指定によるGPUの描画制限を回避するため、
+    # ParallaxBackground を用いた確実な無限タイリング方式に変更します。
+    var texture = load("res://assets/sprites/pasture_background.png")
+    
+    if texture:
+        var pb = ParallaxBackground.new()
+        var pl = ParallaxLayer.new()
+        
+        bg_sprite = Sprite2D.new()
+        bg_sprite.name = "BackgroundSprite"
+        bg_sprite.texture = texture
+        bg_sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+        bg_sprite.region_enabled = true
+        
+        # GPUの制限に引っかからない安全なサイズ (8000px)
+        var region_size = 8000
+        bg_sprite.region_rect = Rect2(0, 0, region_size, region_size)
+        
+        # 模様のサイズ感を調整
+        bg_sprite.scale = Vector2(2.0, 2.0)
+        
+        # Spriteの実際の表示サイズ (8000 * 2.0 = 16000) でループさせる
+        pl.motion_mirroring = Vector2(region_size * 2.0, region_size * 2.0)
+        
+        pl.add_child(bg_sprite)
+        pb.add_child(pl)
+        
+        # 最背面に配置する
+        add_child(pb)
+        move_child(pb, 0)
+    else:
+        push_error("背景用テクスチャが見つかりません: res://assets/sprites/pasture_background.png")
+
 
 var time_left: float = 120.0 # 2分ウェーブ
 var spawn_timer: float = 0.0
@@ -80,3 +124,10 @@ func spawn_item():
     var spawn_pos = katamari.global_position + Vector2(cos(angle), sin(angle)) * distance
     item.global_position = spawn_pos
     add_child(item)
+func _on_player_hp_changed(new_hp):
+    var heart_string = ""
+    for i in range(new_hp):
+        heart_string += "❤️"
+    
+    if hp_label:
+        hp_label.text = "HP: " + heart_string

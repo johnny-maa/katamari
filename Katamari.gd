@@ -1,5 +1,12 @@
 extends CharacterBody2D
+# --- 追加：シグナルと変数 ---
+signal hp_changed(new_hp)
 
+var max_hp = 3
+var current_hp = 3
+var is_invincible = false
+var invincibility_timer: float = 0.0
+# ------------------------
 var base_speed: float = 400.0
 var current_speed: float = 400.0
 
@@ -14,22 +21,25 @@ var current_speed: float = 400.0
 var current_radius: float = 32.0 
 var base_radius: float = 32.0
 
-# アイテム効果フラグとタイマー
+# プレイヤー（押す人）の体力
 var has_crown: bool = false
 var has_magnet: bool = false
 var item_timer: float = 0.0
 
 # 被弾処理
-var is_invincible: bool = false
-var invincibility_timer: float = 0.0
 var knockback_velocity: Vector2 = Vector2.ZERO
 
 func _ready():
     add_to_group("player")
     absorb_area.area_entered.connect(_on_absorb_area_entered)
     pusher_hitbox.area_entered.connect(_on_pusher_hitbox_entered)
+    pusher_hitbox.body_entered.connect(_on_pusher_hitbox_body_entered) # 障害物判定用
+    current_hp = max_hp
     update_size(current_radius)
-
+ # 既存の_ready処理があれば残しつつ、最後に以下を追加
+    current_hp = max_hp
+    hp_changed.emit(current_hp) # 初期HPをUIに伝える
+    
 func _physics_process(delta):
     if camera:
         # ズーム倍率は、半径に反比例（大きくなるほど引く）。引きすぎないように平方根を取り、下限を0.4にする
@@ -63,7 +73,7 @@ func _physics_process(delta):
         # ノックバック中はノックバックベクトルが優先される
         velocity = direction * current_speed + knockback_velocity
         
-        pusher_sprite.position = -direction.normalized() * current_radius
+        pusher_sprite.position = -direction.normalized() * (current_radius + 24.0) # キャラと球の間に少し距離を空ける
         
         if direction.x < 0:
             pusher_sprite.flip_h = true
@@ -99,6 +109,16 @@ func _on_pusher_hitbox_entered(area: Area2D):
     if area.is_in_group("enemy") and not is_invincible and not has_crown:
         take_damage(area.global_position)
 
+func _on_pusher_hitbox_body_entered(body: Node2D):
+    # TileMapLayerの柵やStaticBody2Dなどの障害物・見えない壁にぶつかったときのダメージ処理
+    # Player自身(CharacterBody2D)との衝突は無視する
+    if body != self and not is_invincible:
+        # 壁から弾かれるように、進行方向の逆向きにノックバックベクトルを作るための仮想位置を渡す
+        var push_away_pos = global_position + velocity.normalized() * 100.0
+        if velocity == Vector2.ZERO:
+            push_away_pos = global_position + Vector2(0, 100)
+        take_damage(push_away_pos)
+
 func pickup_item(item: Area2D):
     var type = item.item_type
     item.pickup()
@@ -127,11 +147,21 @@ func take_damage(enemy_pos: Vector2):
     is_invincible = true
     invincibility_timer = 1.0
     
-    # 2. ノックバック
+    # 2. HP減少とゲームオーバー判定
+    current_hp -= 1
+    hp_changed.emit(current_hp)
+    if current_hp <= 0:
+        var final_size = current_radius * 1.5
+        GameManager.change_to_result(final_size)
+        return
+    
+    # 3. ノックバック
     var dir = enemy_pos.direction_to(global_position)
+    if dir == Vector2.ZERO:
+        dir = Vector2.UP # 位置が完全に重なっている場合のフェイルセーフ
     knockback_velocity = dir * 800.0 # 強く弾く
     
-    # 3. サイズ減少 (面積を10%減らす)
+    # 4. サイズ減少 (面積を10%減らす)
     var current_area = current_radius * current_radius
     var new_area = current_area * 0.9
     current_radius = max(base_radius, sqrt(new_area))
@@ -157,12 +187,14 @@ func absorb_enemy(enemy: Area2D):
     
     # 成長鈍化（大きくなるほど吸収効率が下がる。最小10%まで）
     var efficiency = clamp(base_radius / r, 0.1, 1.0)
-    var added_area = (r_o * r_o) * efficiency
+    
+    # ★ここで全体の成長スピードを調整！ 0.5 なら今の半分のペースで大きくなります
+    var growth_speed = 0.5 
+    var added_area = (r_o * r_o) * efficiency * growth_speed
     
     current_radius = sqrt(r * r + added_area)
     
-    update_size(current_radius)
-    
+    update_size(current_radius)	
     # 吸収時のヒットストップ演出
     apply_hit_stop(0.1, 0.05)
 
@@ -181,3 +213,7 @@ func apply_hit_stop(target_time_scale: float, duration: float):
     # ignore_time_scaleをtrueにして、タイムスケール低下中でも現実時間で正しく復帰させる
     await get_tree().create_timer(duration, true, false, true).timeout
     Engine.time_scale = 1.0
+
+
+
+   

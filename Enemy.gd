@@ -1,5 +1,6 @@
 extends Area2D
-
+# Enemy.gd の上の方（extends ... の下あたり）に追加
+@export var enemy_textures: Array[Texture2D] = []
 enum EnemyType { CHICK, RABBIT, BEAR }
 @export var enemy_type: EnemyType = EnemyType.CHICK
 
@@ -13,7 +14,10 @@ func _ready():
     add_to_group("enemy")
     target = get_tree().get_first_node_in_group("player")
     setup_enemy()
-
+    
+    if enemy_textures.size() > 0:
+        $Sprite2D.texture = enemy_textures.pick_random()
+        $Sprite2D.modulate = Color.WHITE # 仮画像時代の「色変え」をリセット
 func setup_enemy():
     match enemy_type:
         EnemyType.CHICK:

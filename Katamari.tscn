@@ -1,19 +1,23 @@
-[gd_scene load_steps=5 format=3 uid="uid://cqu8rip4n4jjn"]
+[gd_scene load_steps=6 format=3 uid="uid://cqu8rip4n4jjn"]
 
-[ext_resource type="Script" path="res://Katamari.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://y5x7nr0l8n1f" path="res://Katamari.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://dlcd2b0vn2a2y" path="res://icon.svg" id="2_icon"]
+[ext_resource type="Texture2D" uid="uid://cyqgjytokegpc" path="res://assets/sprites/ring_a.png" id="2_ykyv8"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_katamari"]
 radius = 32.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_absorb"]
-radius = 37.0
+radius = 35.35534
 
 [node name="Katamari" type="CharacterBody2D" groups=["player"]]
+scale = Vector2(0.5, 0.5)
 script = ExtResource("1_script")
 
 [node name="KatamariSprite" type="Sprite2D" parent="."]
-texture = ExtResource("2_icon")
+position = Vector2(0, 1.9073486e-06)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_ykyv8")
 
 [node name="PusherSprite" type="Sprite2D" parent="."]
 scale = Vector2(0.5, 0.5)

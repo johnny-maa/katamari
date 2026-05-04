@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 GameManager="*res://GameManager.gd"
 
+[gui]
+
+theme/custom_font="uid://cdd2amxw3bmer"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
